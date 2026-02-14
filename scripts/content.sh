@@ -1,5 +1,7 @@
 #!/bin/bash
 # Exa contents retrieval (URLs/IDs) + optional subpage crawling
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+source "$SCRIPT_DIR/env.sh"
 
 if [ $# -eq 0 ]; then
     echo "Usage: bash content.sh \"url1\" \"url2\" ..." >&2
@@ -8,7 +10,7 @@ fi
 
 if [ -z "${EXA_API_KEY:-}" ]; then
     echo "Error: EXA_API_KEY is not set." >&2
-    echo "Please set EXA_API_KEY environment variable." >&2
+    echo "Set EXA_API_KEY (env var or .env file)." >&2
     exit 1
 fi
 

@@ -1,5 +1,7 @@
 #!/bin/bash
 # Exa Research: one-shot (create + poll until finished)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+source "$SCRIPT_DIR/env.sh"
 
 INSTRUCTIONS="$1"
 

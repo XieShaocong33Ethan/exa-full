@@ -1,9 +1,9 @@
 ---
-name: exa-plus
+name: exa-full
 version: 1.0.0
-description: Exa AI search + Research API. Supports web/code search, content extraction, and async multi-step research tasks with outputSchema.
+description: Exa AI search + Research API. Neural web/code search, content extraction, URL crawling, async research with outputSchema. EXA_API_KEY via env or .env.
 homepage: https://exa.ai
-metadata: {"openclaw":{"emoji":"🧠","requires":{"bins":["curl","jq"],"env":["EXA_API_KEY"]}}}
+metadata: {"openclaw":{"emoji":"🕵️‍♀️","requires":{"bins":["curl","jq"],"env":["EXA_API_KEY"]}}}
 ---
 
 # Exa - Search + Research
@@ -12,10 +12,17 @@ Powerful AI-powered search + content extraction + async research tasks.
 
 ## Setup
 
-Set `EXA_API_KEY` environment variable:
+**Option A** – Environment variable:
 ```bash
 export EXA_API_KEY="your-exa-api-key"
 ```
+
+**Option B** – `.env` file (skill root or current dir):
+```bash
+# exa_oc/.env or ./.env
+EXA_API_KEY=your-exa-api-key
+```
+If `EXA_API_KEY` is not set, scripts auto-load from `exa_oc/.env` or `./.env`.
 
 ## Commands
 
@@ -120,28 +127,3 @@ bash scripts/research_poll.sh "$RID" | jq
 - Use `scripts/search.sh` to find relevant URLs (optionally narrow with `DOMAINS` and `CATEGORY`)
 - Use `scripts/content.sh` to pull full text and (when appropriate) crawl subpages
 - Use `scripts/research.sh` when you need multi-source synthesis with citations / structured output
-
-## 发布到 ClawHub（解决提交校验报错）
-
-如果你在提交时看到类似报错：
-- `Slug is required.`
-- `Display name is required.`
-- `Add at least one file.`
-- `SKILL.md is required.`
-
-通常原因是：发布时缺少必填参数，或 `clawhub publish <path>` 的 `<path>` 不是包含 `SKILL.md` 的 skill 目录。
-
-在本目录（包含 `SKILL.md` 的目录）执行：
-
-```bash
-# 登录（只需要一次）
-clawhub login
-
-# 发布（slug 建议与 frontmatter 的 name 保持一致）
-clawhub publish . \
-  --slug exa-plus \
-  --name "Exa - Search + Research" \
-  --version 1.0.0 \
-  --tags latest \
-  --changelog "init"
-```

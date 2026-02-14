@@ -1,5 +1,7 @@
 #!/bin/bash
 # Exa Research: poll a research task until completion
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+source "$SCRIPT_DIR/env.sh"
 
 RESEARCH_ID="$1"
 
@@ -15,7 +17,7 @@ fi
 
 if [ -z "${EXA_API_KEY:-}" ]; then
   echo "Error: EXA_API_KEY is not set." >&2
-  echo "Please set EXA_API_KEY environment variable." >&2
+  echo "Set EXA_API_KEY (env var or .env file)." >&2
   exit 1
 fi
 
