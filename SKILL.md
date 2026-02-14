@@ -1,6 +1,6 @@
 ---
 name: exa-full
-version: 1.2.0
+version: 1.2.1
 description: Exa AI search + Research API. Supports web/code search, content extraction, and async multi-step research tasks with outputSchema.
 homepage: https://exa.ai
 metadata: {"openclaw":{"emoji":"🔍","requires":{"bins":["curl","jq"],"env":["EXA_API_KEY"]}}}
@@ -8,170 +8,130 @@ metadata: {"openclaw":{"emoji":"🔍","requires":{"bins":["curl","jq"],"env":["E
 
 # Exa - Search + Research
 
-Powerful AI-powered search + content extraction + async research tasks.
+Use this skill for web search, code-context search, URL content extraction, and async research workflows.
+
+## What This Skill Does
+
+- Run Exa web search with optional category and domain filters.
+- Retrieve full page content (and optional subpage crawling).
+- Find code and docs context for programming queries.
+- Run async research tasks (one-shot or create/poll workflows).
+- Support optional structured outputs via `outputSchema`.
 
 ## Setup
 
-**Option A** – Environment variable:
+Set `EXA_API_KEY` using one of these methods.
+
 ```bash
 export EXA_API_KEY="your-exa-api-key"
 ```
 
-**Option B** – `.env` file in the skill root directory:
 ```bash
-# .env (placed next to SKILL.md)
+# .env next to SKILL.md
 EXA_API_KEY=your-exa-api-key
 ```
-If `EXA_API_KEY` is not set, scripts auto-load from the skill root `.env`. Only `EXA_API_KEY` is read; other variables in the file are ignored.
 
-## Commands
+Behavior:
+- If `EXA_API_KEY` is missing in the environment, scripts load only `EXA_API_KEY` from `.env`.
+- Other `.env` variables are ignored by the loader.
 
-### General Search
-```bash
-bash scripts/search.sh "query" [options]
-```
+## Safety and Data Handling
 
-Options (as env vars):
-- `NUM=10` - Number of results (max 100)
-- `TYPE=auto` - Search type: auto, neural, fast, deep, instant
-- `CATEGORY=` - Category: company, research paper, news, tweet, personal site, financial report, people
-- `DOMAINS=` - Include domains (comma-separated)
-- `EXCLUDE=` - Exclude domains (comma-separated). **Not supported** with `CATEGORY=company` or `CATEGORY=people` (API returns INVALID_REQUEST_BODY).
-- `SINCE=` - Published after (ISO date). **Not supported** with `CATEGORY=company` or `CATEGORY=people` (script will skip this filter with a warning).
-- `UNTIL=` - Published before (ISO date). **Not supported** with `CATEGORY=company` or `CATEGORY=people` (script will skip this filter with a warning).
-- `LOCATION=NL` - User location (country code)
+- `SCHEMA_FILE` content is sent to `https://api.exa.ai/research/v1` as `outputSchema`.
+- Never use sensitive local files for `SCHEMA_FILE` (for example: `.env`, key/cert files, secrets, internal confidential docs).
+- `research_create.sh` blocks obvious sensitive paths/suffixes (for example: `.env`, `.pem`, `.key`, `.p12`, `.pfx`, `id_rsa`).
 
-Notes:
-- With `CATEGORY=people`, `DOMAINS` only accepts LinkedIn domains (e.g. `linkedin.com`, `www.linkedin.com`, `*.linkedin.com`).
+## Command Quick Reference
 
-### LLM Guidance: Choosing `TYPE`
-
-When an LLM is using this skill, it should select `TYPE` using the policy below instead of always relying on defaults.
-
-Search type comparison:
-
-| Type | Latency | Best for |
-| --- | --- | --- |
-| `auto` | ~1s | Highest quality results (default) |
-| `instant` | sub-150ms | Real-time applications, autocomplete |
-| `fast` | ~500ms | Speed/quality balance |
-| `deep` | ~5s | Comprehensive research tasks |
-
-Selection policy (must follow):
-1. If the user explicitly asks for low latency, realtime behavior, live suggestions, or autocomplete, use `TYPE=instant`.
-2. If the task needs broad coverage, deeper synthesis, or comprehensive research, use `TYPE=deep`.
-3. If the user asks for a speed/quality balance, or latency is important but not strictly realtime, use `TYPE=fast`.
-4. Otherwise use `TYPE=auto` as the default high-quality mode.
-
-Override rules:
-- User's explicit requirement has highest priority.
-- If search is too slow or time-sensitive, step down one level: `deep -> auto -> fast -> instant`.
-- If returned results are too shallow, step up one level: `instant -> fast -> auto -> deep`.
-
-Recommended execution pattern for agents:
-```bash
-# Decide TYPE first, then call search
-TYPE=auto bash scripts/search.sh "query"
-```
-
-Examples:
-```bash
-# Realtime UX / autocomplete
-TYPE=instant bash scripts/search.sh "best ramen near me open now"
-
-# General high-quality lookup
-TYPE=auto bash scripts/search.sh "latest AI model release notes"
-
-# Balanced speed and quality
-TYPE=fast bash scripts/search.sh "top battery recycling companies europe"
-
-# Deep, comprehensive search
-TYPE=deep bash scripts/search.sh "long-term impact of solid-state batteries on EV supply chain"
-```
-
-### Examples
+### Search
 
 ```bash
-# Basic search
-bash scripts/search.sh "AI agents 2024"
-
-# LinkedIn people search
-CATEGORY=people bash scripts/search.sh "software engineer Amsterdam"
-
-# Company search
-CATEGORY=company bash scripts/search.sh "fintech startup Netherlands"
-
-# News from specific domain
-CATEGORY=news DOMAINS="reuters.com,bbc.com" bash scripts/search.sh "Netherlands"
-
-# Research papers
-CATEGORY="research paper" bash scripts/search.sh "transformer architecture"
-
-# Deep search (comprehensive)
-TYPE=deep bash scripts/search.sh "climate change solutions"
-
-# Date-filtered news
-CATEGORY=news SINCE="2026-01-01" bash scripts/search.sh "tech layoffs"
+bash scripts/search.sh "query"
 ```
 
-### Code Context Search
-```bash
-bash scripts/code.sh "query" [num_results]
-```
+Main env vars:
+- `NUM=10` (max 100)
+- `TYPE=auto` (`auto`, `neural`, `fast`, `deep`, `instant`)
+- `CATEGORY=` (`company`, `research paper`, `news`, `tweet`, `personal site`, `financial report`, `people`)
+- `DOMAINS=domain1.com,domain2.com`
+- `EXCLUDE=domain1.com,domain2.com`
+- `SINCE=YYYY-MM-DD`
+- `UNTIL=YYYY-MM-DD`
+- `LOCATION=NL`
 
-### Get Content
-Extract full text from URLs:
+Constraints:
+- `EXCLUDE` is not supported when `CATEGORY=company` or `CATEGORY=people`.
+- `SINCE` and `UNTIL` are not supported when `CATEGORY=company` or `CATEGORY=people`.
+- When `CATEGORY=people`, `DOMAINS` accepts LinkedIn domains only (`linkedin.com`, `www.linkedin.com`, `*.linkedin.com`).
+
+### Content Extraction
+
 ```bash
 bash scripts/content.sh "url1" "url2"
 ```
 
-Optional env vars (contents + crawling):
-- `MAX_CHARACTERS=2000` - Max characters per page
-- `HIGHLIGHT_SENTENCES=3` - Sentences per highlight
-- `HIGHLIGHTS_PER_URL=2` - Highlights per URL
-- `SUBPAGES=10` - Crawl up to N subpages (see [Crawling Subpages](https://docs.exa.ai/reference/crawling-subpages)). Prefer `https://docs.exa.ai/` over `https://exa.ai/docs/reference/` (后者 subpages 会返回 CRAWL_NOT_FOUND).
-- `SUBPAGE_TARGET="docs,tutorial"` - Comma-separated subpage targets
-- `LIVECRAWL=preferred` - `"preferred" | "always" | "fallback"`
-- `LIVECRAWL_TIMEOUT=12000` - Livecrawl timeout (ms)
+Main env vars:
+- `MAX_CHARACTERS=2000`
+- `HIGHLIGHT_SENTENCES=3`
+- `HIGHLIGHTS_PER_URL=2`
+- `SUBPAGES=10`
+- `SUBPAGE_TARGET="docs,reference,api"`
+- `LIVECRAWL=preferred` (`preferred`, `always`, `fallback`)
+- `LIVECRAWL_TIMEOUT=12000`
 
-Examples:
+### Code Context Search
+
 ```bash
-# Discover docs pages via llms.txt
-MAX_CHARACTERS=10000 bash scripts/content.sh "https://exa.ai/docs/llms.txt" | jq
-
-# Crawl docs subpages starting from a seed page (use docs.exa.ai; exa.ai/docs/reference/ returns CRAWL_NOT_FOUND)
-SUBPAGES=10 SUBPAGE_TARGET="docs,reference,api" LIVECRAWL=preferred LIVECRAWL_TIMEOUT=12000 \
-  bash scripts/content.sh "https://docs.exa.ai/" | jq
+bash scripts/code.sh "query" [num_results]
 ```
 
-### Exa Research (Async)
-Docs (params/status/polling): [`https://exa.ai/docs/reference/exa-research`](https://exa.ai/docs/reference/exa-research)
+### Research (One-shot)
 
-#### One-shot (create + poll until finished)
 ```bash
-bash scripts/research.sh "Compare the current flagship GPUs from NVIDIA, AMD and Intel."
+bash scripts/research.sh "instructions"
 ```
 
-Optional env vars:
-- `MODEL=exa-research` (default) or `MODEL=exa-research-pro`
-- `SCHEMA_FILE=path/to/schema.json` (optional, used as `outputSchema`)
-- `POLL_INTERVAL=2` (seconds between polls)
-- `MAX_WAIT_SECONDS=240` (timeout in seconds)
-- `EVENTS=true` (include event log in responses)
+Main env vars:
+- `MODEL=exa-research` or `MODEL=exa-research-pro`
+- `SCHEMA_FILE=path/to/schema.json`
+- `POLL_INTERVAL=2`
+- `MAX_WAIT_SECONDS=240`
+- `EVENTS=true`
 
-#### Two-step workflow (create, then poll)
+### Research (Create/Poll)
+
 ```bash
-# Create
-bash scripts/research_create.sh "Estimate the global market size for battery recycling in 2030." | jq
-
-# Extract researchId
-RID="$(bash scripts/research_create.sh "Create a timeline of major OpenAI product releases from 2015 to 2023." | jq -r '.researchId')"
-
-# Poll until finished
-bash scripts/research_poll.sh "$RID" | jq
+bash scripts/research_create.sh "instructions" | jq
+bash scripts/research_poll.sh "researchId" | jq
 ```
 
-### Agent-friendly workflow (recommended)
-- Use `scripts/search.sh` to find relevant URLs (optionally narrow with `DOMAINS` and `CATEGORY`)
-- Use `scripts/content.sh` to pull full text and (when appropriate) crawl subpages
-- Use `scripts/research.sh` when you need multi-source synthesis with citations / structured output
+## Agent Decision Rules
+
+### Choose `TYPE` for Search
+
+Use this decision order:
+1. User explicitly asks for realtime or autocomplete -> `TYPE=instant`.
+2. Task needs broad coverage or deeper synthesis -> `TYPE=deep`.
+3. User asks for speed/quality balance -> `TYPE=fast`.
+4. Otherwise -> `TYPE=auto` (default).
+
+Fallback/escalation:
+- If too slow or time-sensitive: `deep -> auto -> fast -> instant`.
+- If too shallow: `instant -> fast -> auto -> deep`.
+- Explicit user requirement always wins.
+
+Recommended pattern:
+
+```bash
+TYPE=auto bash scripts/search.sh "query"
+```
+
+## Common Pitfalls
+
+- Do not pass sensitive files to `SCHEMA_FILE`.
+- Do not combine `CATEGORY=people|company` with `EXCLUDE`, `SINCE`, or `UNTIL`.
+- Prefer `https://docs.exa.ai/` for subpage crawling seeds (more reliable than `https://exa.ai/docs/reference/`).
+
+## More Examples
+
+See [EXAMPLES.md](EXAMPLES.md) for grouped command examples and edge-case workflows.

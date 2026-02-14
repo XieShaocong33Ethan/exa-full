@@ -11,6 +11,7 @@ if [ -z "$INSTRUCTIONS" ]; then
   echo "Options (env vars):" >&2
   echo "  MODEL=exa-research        Research model: exa-research, exa-research-pro" >&2
   echo "  SCHEMA_FILE=path.json     JSON Schema file for outputSchema (optional)" >&2
+  echo "                            Warning: SCHEMA_FILE content is sent to api.exa.ai; do not use sensitive files" >&2
   exit 1
 fi
 
@@ -23,6 +24,16 @@ fi
 MODEL="${MODEL:-exa-research}"
 
 if [ -n "${SCHEMA_FILE:-}" ]; then
+  # Security guard: refuse obviously sensitive local files from being uploaded as outputSchema.
+  _schema_lc="$(printf '%s' "$SCHEMA_FILE" | tr '[:upper:]' '[:lower:]')"
+  case "$_schema_lc" in
+    .env|.env.*|*.env|*.env.*|*.key|*.pem|*.p12|*.pfx|*.jks|*.keystore|*.der|*.crt|*.cer|*id_rsa*|*id_ecdsa*|*id_ed25519*)
+      echo "Error: Refusing SCHEMA_FILE path that looks sensitive: $SCHEMA_FILE" >&2
+      echo "Use a dedicated JSON schema file (for example: schema.json)." >&2
+      exit 1
+      ;;
+  esac
+
   if [ ! -f "$SCHEMA_FILE" ]; then
     echo "Error: SCHEMA_FILE does not exist: $SCHEMA_FILE" >&2
     exit 1
