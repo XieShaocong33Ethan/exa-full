@@ -19,7 +19,7 @@ MAX_CHARACTERS="${MAX_CHARACTERS:-2000}"
 HIGHLIGHT_SENTENCES="${HIGHLIGHT_SENTENCES:-3}"
 HIGHLIGHTS_PER_URL="${HIGHLIGHTS_PER_URL:-2}"
 
-# Optional crawling (see docs: https://exa.ai/docs/reference/crawling-subpages)
+# Optional crawling (see docs: https://docs.exa.ai/reference/crawling-subpages)
 # SUBPAGES=10
 # SUBPAGE_TARGET="docs,tutorial"
 # LIVECRAWL="preferred"|"always"|"fallback"
@@ -60,7 +60,4 @@ if [ -n "${LIVECRAWL_TIMEOUT:-}" ]; then
 fi
 
 # Call API
-curl -s -X POST 'https://api.exa.ai/contents' \
-    -H "x-api-key: $EXA_API_KEY" \
-    -H 'Content-Type: application/json' \
-    -d "$PAYLOAD"
+exa_post_json "https://api.exa.ai/contents" "$PAYLOAD"

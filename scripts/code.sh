@@ -26,11 +26,10 @@ PAYLOAD=$(jq -n \
         query: $query,
         type: "auto",
         numResults: $numResults,
-        text: true,
-        highlights: true
+        contents: {
+            text: true,
+            highlights: true
+        }
     }')
 
-curl -s -X POST 'https://api.exa.ai/search' \
-    -H "x-api-key: $EXA_API_KEY" \
-    -H 'Content-Type: application/json' \
-    -d "$PAYLOAD"
+exa_post_json "https://api.exa.ai/search" "$PAYLOAD"
