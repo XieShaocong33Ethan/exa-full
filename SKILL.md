@@ -1,6 +1,6 @@
 ---
 name: exa-full
-version: 1.0.0
+version: 1.1.0
 description: Exa AI search + Research API. Supports web/code search, content extraction, and async multi-step research tasks with outputSchema.
 homepage: https://exa.ai
 metadata: {"openclaw":{"emoji":"🕵️‍♀️","requires":{"bins":["curl","jq"],"env":["EXA_API_KEY"]}}}
