@@ -28,6 +28,13 @@ if [ -n "${SCHEMA_FILE:-}" ]; then
     exit 1
   fi
 
+  # Guard: reject files larger than 50MB
+  _size="$(wc -c < "$SCHEMA_FILE")"
+  if [ "$_size" -gt 52428800 ]; then
+    echo "Error: SCHEMA_FILE exceeds 50MB limit: $SCHEMA_FILE" >&2
+    exit 1
+  fi
+
   OUTPUT_SCHEMA_JSON="$(jq -c '.' "$SCHEMA_FILE")"
 
   PAYLOAD="$(jq -n \
