@@ -1,9 +1,9 @@
 ---
 name: exa-full
-version: 1.1.0
+version: 1.1.1
 description: Exa AI search + Research API. Supports web/code search, content extraction, and async multi-step research tasks with outputSchema.
 homepage: https://exa.ai
-metadata: {"openclaw":{"emoji":"🕵️‍♀️","requires":{"bins":["curl","jq"],"env":["EXA_API_KEY"]}}}
+metadata: {"openclaw":{"emoji":"🔍","requires":{"bins":["curl","jq"],"env":["EXA_API_KEY"]}}}
 ---
 
 # Exa - Search + Research
@@ -17,12 +17,12 @@ Powerful AI-powered search + content extraction + async research tasks.
 export EXA_API_KEY="your-exa-api-key"
 ```
 
-**Option B** – `.env` file (skill root only):
+**Option B** – `.env` file in the skill root directory:
 ```bash
-# exa_oc/.env
+# .env (placed next to SKILL.md)
 EXA_API_KEY=your-exa-api-key
 ```
-If `EXA_API_KEY` is not set, scripts auto-load from `exa_oc/.env`. Only `EXA_API_KEY` is read; other variables in the file are ignored.
+If `EXA_API_KEY` is not set, scripts auto-load from the skill root `.env`. Only `EXA_API_KEY` is read; other variables in the file are ignored.
 
 ## Commands
 
